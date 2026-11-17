@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>root@0xCarlos — CV interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0f0d;--fg:#c9f5d9;--dim:#6f8f7d;--acc:#39ff9f;--warn:#ffcc4d;--err:#ff5f6d;--blue:#6cc7ff;--panel:#111814}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:14px}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+.wrap{display:flex;flex-direction:column;height:100%;max-width:980px;margin:0 auto;padding:12px}
+.bar{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid #1f2d25;border-bottom:none;border-radius:10px 10px 0 0;padding:8px 12px}
+.dots span{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px}
+.ttl{color:var(--dim);font-size:12px;flex:1;text-align:center}
+.prog{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+.prog .track{width:110px;height:7px;background:#1b2620;border-radius:4px;overflow:hidden}
+.prog .fill{height:100%;width:0;background:var(--acc);transition:width .5s}
+button.q{background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:6px;font:inherit;font-size:12px;padding:4px 9px;cursor:pointer}
+button.q:hover{background:var(--acc);color:#000}
+#term{flex:1;overflow-y:auto;background:rgba(10,16,13,.9);border:1px solid #1f2d25;padding:14px 16px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+#term .l{min-height:1.5em}
+.acc{color:var(--acc)} .dim{color:var(--dim)} .warn{color:var(--warn)} .err{color:var(--err)} .blue{color:var(--blue)} .b{font-weight:700}
+.flag{color:#000;background:var(--acc);padding:0 5px;border-radius:3px;font-weight:700}
+.prompt{color:var(--acc)} .prompt .h{color:var(--blue)}
+.inrow{display:flex;gap:8px;align-items:center}
+#in{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font:inherit;caret-color:var(--acc)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;background:var(--panel);border:1px solid #1f2d25;border-top:none;border-radius:0 0 10px 10px;padding:8px 10px}
+.chips button{background:#16211b;color:var(--fg);border:1px solid #24362c;border-radius:5px;font:inherit;font-size:12px;padding:4px 8px;cursor:pointer}
+.chips button:hover{border-color:var(--acc);color:var(--acc)}
+.chips button.done{opacity:.55;text-decoration:line-through}
+.ava{float:left;width:84px;height:84px;border-radius:8px;border:1px solid var(--acc);margin:2px 14px 6px 0;filter:grayscale(.2) contrast(1.05)}
+a{color:var(--blue)}
+/* modo rápido */
+#cv{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px;z-index:10}
+#cv.on{display:flex}
+.sheet{background:#fafaf7;color:#222;max-width:820px;width:100%;border-radius:10px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;display:flex;overflow:hidden}
+.sheet aside{background:#232528;color:#e8e8e8;width:250px;flex-shrink:0;padding:24px 18px;font-size:12.5px}
+.sheet aside img{width:110px;height:110px;border-radius:50%;border:2px solid #fff;display:block;margin:0 auto 14px}
+.sheet aside h4{text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;margin:16px 0 4px;color:#fff}
+.sheet aside .n{font-size:20px;font-weight:700;line-height:1.2}
+.sheet aside .r{color:#5fd0a3}
+.sheet main{padding:24px 26px;flex:1}
+.sheet h2{color:#1a7f5a;font-size:13px;letter-spacing:.6px;text-transform:uppercase;border-bottom:1.5px solid #1a7f5a;margin:18px 0 8px;padding-bottom:2px}
+.sheet h1{color:#1a7f5a;font-size:19px;margin:0 0 8px}
+.sheet .d{color:#666;font-style:italic;font-size:12.5px}
+.sheet ul{margin:4px 0 8px 18px;padding:0}
+.sheet a{color:#1a7f5a}
+.close{position:sticky;top:0;align-self:flex-start;margin-left:8px;background:#fff;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;font-weight:700}
+@media (max-width:700px){.sheet{flex-direction:column}.sheet aside{width:auto}.ttl{display:none}#term{font-size:12.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="bar">
+  <div class="dots"><span style="background:#ff5f56"></span><span style="background:#ffbd2e"></span><span style="background:#27c93f"></span></div>
+  <div class="ttl">recruiter@secur0: ssh carlos@0xCarlos</div>
+  <div class="prog">flags <b id="fc">0/7</b><div class="track"><div class="fill" id="ff"></div></div></div>
+  <button class="q" id="quick">Modo rápido ⚡ CV</button>
+ </div>
+ <div id="term"></div>
+ <div class="chips" id="chips"></div>
+</div>
+
+<div id="cv"><div class="sheet">
+ <aside>
+  <img src="data:image/jpeg;base64,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" alt="Carlos López-Bleda">
+  <div class="n">CARLOS<br>LÓPEZ-BLEDA</div>
+  <div class="r">Pentester Junior · Hacking Web</div>
+  <div class="r" style="font-family:monospace">0xCarlos</div>
+  <h4>Contacto</h4>
+  Carloslopezbm@gmail.com<br>
+  <a style="color:#9fe3c4" href="https://linkedin.com/in/carlos-lopez-bleda-mancebo-b28b70309">LinkedIn</a> · <a style="color:#9fe3c4" href="https://github.com/carlosLopez-Bleda">GitHub</a><br>Albacete, España
+  <h4>Disponibilidad</h4>Remoto / híbrido / presencial · incorporación inmediata
+  <h4>Stack ofensivo</h4>Burp Suite · Nmap · Metasploit<br>OWASP Top 10 / hacking web<br>Testing de APIs y endpoints<br>Active Directory (enumeración)<br>Kali · Parrot · Bash / Python ofensivo
+  <h4>Sistemas y desarrollo</h4>Linux (Arch, SO principal) · Windows<br>Redes TCP/IP · servidores · RAID<br>Python · Bash · JavaScript · Java<br>SQL / MySQL · Elasticsearch<br>Selenium · Cypress · Git
+  <h4>Certificaciones</h4>eJPT — en curso<br>PNPT → OSCP — roadmap<br>AWS Cloud Quest: Cloud Practitioner<br>AWS Cloud Quest: Solutions Architect
+  <h4>Idiomas</h4>Español nativo · Inglés B1 · Francés A1
+ </aside>
+ <main>
+  <h1>Pentester Junior · Red Team / Hacking Web</h1>
+  <p>Perfil técnico con base en sistemas, redes y desarrollo web, enfocado en pentesting y hacking web. Cursando el Máster en Ciberseguridad de Evolve Academy y formándome a diario en ofensiva con Hack4u. Mi etapa como QA en Genasys me dio ojo de atacante: probar APIs, endpoints y lógica de aplicación buscando dónde se rompen.</p>
+  <h2>Experiencia</h2>
+  <b>Tester QA Backend/Frontend</b> – Genasys Inc.<div class="d">Abr 2025 – Sep 2025 · Albacete (híbrido)</div>
+  <ul><li>Testing de APIs y servidores (endpoints, templates), detectando posibles vulnerabilidades en proyectos de protección civil.</li><li>Testing frontend de Genasys Protect.</li><li>Automatización con Selenium y Cypress; consultas a MySQL y Elasticsearch.</li></ul>
+  <b>Técnico de Redes / Instalador</b> – Tech Zone<div class="d">2022 · Malta</div>
+  <ul><li>CCTV, alarmas y control de accesos; soporte en servidores y arrays RAID.</li></ul>
+  <b>Peritaje informático</b> – casos puntuales<div class="d">Apoyo en un par de informes periciales para procedimientos judiciales</div>
+  <b>Coordinador de centro deportivo</b> – Propadel · <b>Camarero</b> – Pico Fino<div class="d">2022 – actualidad · compaginado con la formación</div>
+  <h2>Laboratorios</h2>
+  <ul><li>Máquinas resueltas en entorno propio (VMware): Cereal, MyExpense, Padding Oracle Attack.</li><li>Hacking web: inyecciones, XSS, autenticación y lógica de negocio.</li><li>Empezando en VDPs y bug bounty con el perfil 0xCarlos en Secur0.</li></ul>
+  <h2>Formación</h2>
+  <b>Máster en Ciberseguridad</b> – Evolve Academy<div class="d">En curso · Red y Blue Team · voucher eJPT</div>
+  <b>CFGS Desarrollo de Aplicaciones Web</b> – Medac Albacete<div class="d">2023 – 2025</div>
+  <b>CFGM Sistemas Microinformáticos y Redes</b> – IES Leonardo Da Vinci<div class="d">2020 – 2022</div>
+  <h2>Cursos Hack4u</h2>
+  Hacking Web (en curso) · Introducción al Hacking · Python Ofensivo · Bash Scripting (en curso) · Personalización de Linux
+ </main>
+</div><button class="close" id="cvx">✕</button></div>
+
+<script>
+const AVA="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAcFBQYFBAcGBgYIBwcICxILCwoKCxYPEA0SGhYbGhkWGRgcICgiHB4mHhgZIzAkJiorLS4tGyIyNTEsNSgsLSz/2wBDAQcICAsJCxULCxUsHRkdLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCz/wAARCACgAKADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD5tooooAKKKVVLMABkk4AoASr2laNqGtXQt9PtZLiUkDagzXrnw0/Z+1LxNDFqmuk2GmuA6g5DuPp/Xp9a9stNT8A/DmL7Do0ds10o2tIhDN+L/j0HFJtJXY0m9EeL+EP2afEWrJHca1ImlwtnMchy+McHA9/UivTrD4MfDjwhGlzql0biaNdpZpSvPc4Xn9al1v4kx39pLENQSLeMKIjj868/1LWLb7OiyXIlQElj5h4rH2t9kaOnbc9EfxJ8MtMmiht/D0VwUG1JWtVYAf7zc1r2vxWsJE22elkKCVA80L0/Cvni68VacBGuTNsznZzn8azf+E4msb1JbOJGizuKSDk+1NuTWgRS6n0bd/GmG2k2vokjpv2FhMOP0rnYfi78Obu4ZL7wq1tISVZ0tkI/EjBrx+48fR3s4EtksMbOHbYckcYrD/4+5maAF95JAHXFOLl9oUkuh71L4d+Cfjqdzb3cFndvjdmRojn0+b69jXJeJ/2YL+OOW78M6nFew43RwvwzDHTOcdfc15uunziUloJMe6muj8P+KvE/hiZW0rULu3TPMTZeM/VTxV8xNjzvXvC2s+GbtrfV9PmtXVtuXX5SfrWTX2BpnjvRfGtjHpHjTS7Z/MTPnqMoPrnlT+led/ET9nd7e2k1nwVN9usyC5tQ25lHX5W74HrTTTFY8Dop80EtvM8M0bRyIcMjDBB9xTKYgooooAKKKdFE80qRxqXdyFVR1JPagCWzsrnULpLa0gknmc4VI1LE/gK+pPhX8ENO8I2EfiDxakct9gOtvIAViPbI7n2/P2n+DXwstPAuif8ACT6+qnUZUDRq6gGEEdPcnt+f00dZ1681bWVnu0aG3QHykD5VR7+9ZVanJG63NaVPnlZ7Gp4l8Vz3lncxqptbIRsMZwWGO57fSvLtFtrefRkdURpDkk7c4+provEV8qadPskWVfL/ANWOc1xEH2q58OJFDcRwIg3fK2GNcMXKavJndNRpu0UWNQaz05Ve4lRmLZYbQAorzjXddl1meVYVWKDdgL0AA7mtbxPd28elpaBiZ5AGlcnLY7CuSgtjdzLDFDkry3XmumnGyuznnJy0Q1SSNkbHkVEts5fLbyo6e9d5ovw5u9QCTGRYYmHQDJrqJfhZa2+nq1xM524GVOAM96TxEE7GscJOSuzx2ZnZQGTkHgA9BUlvc+TJuj3q47qcV3Fx4Dnt7maIYkXblWzwAawLzwpd2qyNt+5/F601Wg9LkSw8462HQ+J9WEYP2jHHpnNXrTX9UnYL55dz90YHNcraCVt3mE4XjNalrOyRIAcFWyGHWt7aHK3qdRY3V/PdGOSUsfYfdr0bQPEOo+Dp45ba881JJFElofusp9ux9xXk1lKTeK7SshznPrXdRQSF31K7dD5LIQwPAT3FTsB23j34Y6D8UtMfWNEUWGvRoWkjUD94cfxDv9R/9Y/LOraRfaHqk2nalayWt1AdrxyLgj3+hr6c0PVZo74X1jMIsYKPnO5fTFL8QPB+nfGHw3cappI+z+I9L3B4AoJnx/D64Pb09Oubi7ktHytRUlxby2tzLbzxtFNExR0YYKsDgg1HVCCve/2dfhrDqlxL4s1iBWs7Y4thJ90kdW/TH5+1eOeE/D0/irxVYaNb7t11KFZlGSq9z+VfW/jqez8F/DkeF9HaK2k+z4ZU4IToT9SeKTdlcaV2VfF3iQa3qqrBfPBZQLlFBAEn+10/KuaZ4r7cpnuSqckiTg/pUVtpUl9pFqVYkrEMsepwOlXksY0+4uzzF5U/wmvPqTktWz0KcIS0SOXv02X7xJNKEK8sXzx+VZD2iIB5StxwCHrYNrIWl4BKnGT0qtLGIyqlQozTUmDiuxwfjKydHS9Y5B/dEE557Vv+CNBjfTRcSr88vUn0pdZhjv7Ce25BI4IHQitfw9EZtPtYTK0USL+8K8H6VNab5LGmHglUudbFfWFjGouLqG3CjgMwH6Vv24juYAyyrLA65z1BrzaddGN2IYNPaWR22eYRvwfcmum0S9e2jezEKqEzjbwK43FRVz04ycnYfrOsaJpEhtG3b26rFHk1zl1dWFzEyjzI1fKgSoVzV67a4NzNcRLGZwflD8An3NJG1/dbor6KMxsvJU5ANGluYPebseTtH/YmoTxzW6Tq/Khug5q5a6jbTDH9nRewWtnX/DVzqc8s0Ekai2BBDdWPXA/CuX0ptrjnBJwc161GanC/U8GvTlTnqtGb8M9vE5KWoUnj1q5NqzyF0k8wfKFYDoQKzjwePxNWogZDtdQQB9761ZibljrUy2+5LiSJcDgRit3QvEb+GdSS9t793dn8yRTGP3gPVTXIrHuZlX7pwo+oqzIgBUY+tOwmaHx48HafqWk2nxD8PIotLvEd5Gq42t2Yjtz8p/CvCK+qPh3NaXUF94V1JhLp2rIyBGGdjkYz+NfOXjLw3L4S8Yaloku8/ZJmRGbGWT+E8ccjH41aIPa/2XfDWLvVfE91GyRQp5MUjAbfV+c57D24rn/Eni+HxX4/1K9RpCtyTBFu+6I1OFwK9Dsmm8AfsrNuxDeXsRRBkZBlPPTvjcfWvFvBkCvrkBl5jTqe/FKexUNz1Cw8Q6pZWkKW9rG4ijCA7CD9asRaxe+cZbiO3Vm5PmAmpIgbqPyLW3UFFLM7tj5RVG7nSaQ7LcxrtC4JzXFKSavY7ows7XKdzrF000wWOPy879yodpqs7X+qrHcK0C+ZjapPStAosOmzueX2nG4cCqVnHINBimiAIRcv6n6U1bcmV0ULUTtqK2s3lYLFGwOv41sWVqlvetbICqsoIB6isi+mgj1KGW2Dqi4JV+ue9dFK6S/ZL+FkYOdrFfftWGIiduEknF90y2mnKr+XGoA9BVizt7eG9UTTCPzDtQf3sdanimCoXAydvaqMTwrcPLcbT6LmuSKcj1XZ/CSiO0k1BxFKHQsVI7g/4VM9qIQw4ZcZzWfJe2MUpkjdU7YXnFXVn8+x8xW3KRwcYqZxaKvyrUxLGJD9vmPIUkcjpx1zXmcP9jpdHZLNksxHy+9dF4p8Ty6fHd6JbxbTMQzS7ucHsBXDWzjzBkcg9a9XC02o3fU+fx1aMmoLodSg06V1SOSZy3bFaa2sMs6CJwCwAHzcfWucgJtzHsZ9wB+tadoJZ7hDCRGAMKDXTY4LmizKhXcu0qxH1NI1w8sQfzFRTnGa1r+xSPT41MheYEbge1ZFt9nNskbKfPJ+U4zjmgRoadqd9YK0kDxMWwQ/IIPbFP8Aj7Zf2/oHh3xtBFkzRfZbtlxgOOnfPXd27iktyxaNCdzZ2YK4/GuhuYH8R/CXxPoEcZElmVvIxgckH5sfiFppiZpfHgyHwJ4X0hJEhEmJ3Vzg5VBjj6sa8h8MW403Vo5p5I5Y0OSqnOa9C/aavGHjPSLYYxHZmTB93I/pXlXh6SZdTjUswEisAT3qnsC3Pa7rxDp15C5toJAXUfKE7U43ugz6e/2ewuRdMuASOA3evNYWuVvVEchSMAZArTN5cIDEkx2fe+hrmbXU6UpdDp5r6GSzeGWKYZj2gBRjNYkV7cW2mpbGDhcdOOabcX0lzYxwmFAUyTIB8zfWseSNmBJD4J2gD1pXTK5WtWT3TXDXf2x4HIf7oOMVmHUpLSe0y7AQzZILjBBrF1Uy5eH59iZwSehrBBZHXccsSO+T1rVQujJz5XofQNndRSIyk/u5V4PpT49CgPzREHPUNyK54Ge0tYHUFo2RSQOxxW3p2u28ioJWKEda8hJ7xPfp1XB2Zdh0iNFBdVCrwFAxUV7cx20Xl9ADVjUvEFqLY+UwdwPl21yTTzalfhXJAHzEUpK+rKnV5tEcV4gsn1LXbi6F1CuTtCscEAVVt/DsuP8Aj6gJ68Gma/Ft1ydS2AWNZ0LSKxXBGehr2aa91WPm6j993Ojg0a7Rw3mq5HGa0bezvIWXYobHQY6VzS/aUjRg7YI9avmSYxhjKxwOQTg1RJ2jzztbmEW0rFsZJ6n3rPi0i4WNJPnjkGRwudtJozySpCHJkwAVfPI9RXSJLFEGfzAOxHXPvSsFznI7ee2lLO8ztng4rpvh3PPb+JriCSZ51vLWdHjxyfkLAfmBUMt0naMuxHy45qbwYVtfHmmSKzecLpQ57ENximhXIf2kdKurzx/p08Me5Bp6r17+Y1ebaNpt3b30bywEAHhsjivSv2hYZPsXhLUFkYiW0MLNu6lQp7fWvItOnmW8TLuyk7dpPFU72EjubewczN5qnyzypQ809bWVSQsTMM56VsWNuy6ciTOrSbRwo+7VuWHZZO1txLjg5rncbnTGpZGM0cqQg7W3H+HFZ7XUiMzFQpUfL9as3c7Tafdh2ZXVSUbJBJx2rhtYE85t8SsFMIJ571UYXJdXsSalb3N1JMxkVjIQcBhispbAxbmkI3ZA47c1La2qKoc5Y+rGrhTcm0963UdDK+tz2iztUm0yFcZBjXH0xVNtHUTHKYzVjwZdi+8O2zOQWRdjfhXRPCsg7Z718+7xbTPpVacVJHMLp0MCOzJ8yjjPeorG0K3ckrDGFrpplgMXzJkjpWY8e1ioHzSn9KTdwtY8Y12MnxPf8n5JjjNQ2+n3twSWhJU9CK2vFNl9m8V3gH/LTD496zfLkPKOQ3bmvdpa0012PnqytUkvMngsLwBUMTY6En0q2+n3UygeRtA9O9Z9rqJt2Iud+QMYz+tX4dRgmRkErEAfLg1TuZ6G5pEclnAEkRiMevQmtwahbm0VDG3mAYwq9K5aydCpzIcjHGa3dBkB87zCNm/jNIGWl1O0X5VjkjI6nZ1qfwzcCfxzouwSfNdxg5XAPzVJcRDAeFRkng4pdGiE/iO0YyFTEssm4HAGI2OfwNBJBrxm8Yfsw6PqzATXGkThXbHJTJQ9PfH5V5RpdvICym3cuMMrkHjmvSv2etT/ALb0TxJ4HnnIW7t2mtlOMK2ME9M8HaeuK4K0utTttcbT7qZ1lhkMUiEc5Bwatgej2TReWGVlDMgBINOm1G0topxOzbwMoQcA1iW+tmy0p2lRGKMVQBRlq5W+1O51OffM4GOirwBWajcu5Y8Qa41xIUtgViByDWQW3AMG59DUxjVwUYcn86qJG0cnlt0B4PqK2SsSSlBGNoFPxu2jIB7DPNUbi8llkMVmORwZW6D6VUFlPbt9qZ2kmQ7uaBHf+DvFS6FdPFchmtZfvBeqH1FetaffW2pW6z2sySxt0KmvnWPULaVlLExs3YjjP1rc0fW77Q7oXFnMR/eTOVYehFcdbDKp7y3O/D4t0/dlse3tEXYgetRT24TUEUDhEyTTtD1WDV7OC/iHySr8wPVT3FP8Qypa6XeXpONkJI/KvKUWnY9ltNc3Q8U8SXv23xNdzqfl8zaPoOKoiUde3fJxio3Jc7z1Y5NVL2D7QPK3EKeWx3FfQRjypJHzMpc0myvAkss0weVpIySUZjnFSiEjJBxjuKsWsYjTaKciExkdyaqxJe0q6WSZIpjhiPlb19q7HRZEhimMjKPnON1eeOpjZWU7WU8EdjXo3h66XVtJhuZUUOAUYAcbh3rOSGXmv4geLqNV7DFVdUvRpngvX9VtJRmOIW6MuMo0jDnke2PXmrctnGF3GNfl54HWuN+LGofYNF0vQoD5f2nN9coMd+IweM9MnrjmpQHDeDfEcvhLxhputxbz9kmV3VcZZP4hzxyM1698U9Dt5PFumeMdH2tpfiFBNuXkJLj5gfcjmvBq9t+C/ibT9d0C7+HmvPGkczG402eQ/wCrlH8Oe3c/ifarEcvqEjyziNThI84+vc1TliIGR19a1tW0250nWLmwvYTDcQSFHU/X+VVjGGQirSsBTVtye4qGZc/N2X9RUzRFXx1p6qJBh+GHBpgUjFtBVenUVYKglM9GFCqY2MT/AH14B9RUpQnZ/sikBnLYxmR4mHTkfSkWzltoi9vKwIP3TyDV+ddk6SgcdDTmGIuPWmB2Xwq8Rl7mbSrkeW7/ADoOxI64rtPiFcfZ/BM4U4Nw6xfmc/0rxq0eWwv4b22O2aFg6+/tXoXjnW49V8L6S8J+S4YyEehA6VwVKP75S6M9OlXvh5Re6PPCMHBqELlGPcmp5RnC+tIqkA13HmEKgq1SquD+FKycZApGYqx/3aYEUg+bcTwOa6XwLd4lubKRsKw8xeeh71zLAu7dlX9TVvTLlbLVraXGV3YYdcg8VMloB6ij2sW+4u5gLW3UyzHcOEXk/ien414J4o1x/Efia91RlMa3EhMcZx8idFXjA4GK7T4keIoIrMaBYspkZg946j05VAc4I/iPvivNahIAqS3uJbS6iuLeRopoXDo6nBVgcgj8ajopge+WGqxfGLw2syp5fi/Sogkqlgft8Y/iA4+b/wDVnpnjyjKSrKVZTgqRgg+lef6Tq1/oeqQ6hpt1Ja3cDbkljYqR7fQ17NZ6tpPxSg8618vTvFaKPNtnIEd8cclD2f69e/PJpMDk5FwA3pVWdSrq6nhhjFaF1BLbXDwXETwyoSro4wVYdiKzZW2qQTwhBH0NUA/aZ2STuV/WpivzZqO3JETKeoarJXgYoAiZRIhXHWo5FIRUqdBhzUcnMwFIBgJQDNWPtjyWkdmSTHAzMnsG6j86YVBXB6VWJ2FwnVjtFNq47tDk/eSM/UdBUpXihFCoFA6Dil+9wcjFIQbeOarSEeaeeMVZKADqefeoJLeMIzc/nTAh34jcg5JPFQXGpxaNDuIZ71lzCOmz0c/0FV769TTrYDIa4YnbHn7nuw/HpXO3N1PeTtNcStLI3VmOTUtgRu7O5diWZjkknJJpKKKkAooooAKfDPLbzJNDI0UiHcrqcEH1BplFAHp+m/EjT/EVjHYeNI3+0xqFh1a3XMq46B16MP8AORTta8L3dtate2rx6jprD5by1O+Pn+8Oq/jXl1amjeJNW0CXfpt9NbgnJRW+VvqKadgOptDuIU4JZB+Yq/jP4VRtvHGjalcRvrWj/ZbgDDXVgQm446mPG38vWtON9K1SdYdI1mCR3OFS4QxOfp1H54qk0BW7nHUVDGCzs56HpWlc6Newx7Vi3hsfNG6uOfoaq3NpcWhEUtvJER1DLjFMCuW3NgdKiRP37ZxweKsRQSyNiONnPoozR9mmVtxjKgngkjBwOaABT1GORSFfmNV7q/s9OuGjurhRIDyiDcRWVc+K4kLi0tixORvlP5EClcDalcRReY7BIx/ExwPzrn9R8RYzFYsc5/13T8h2+tYt1e3F5JvuJWkI6ZPSoKlsAJJOScmiiikAUUUUAf/Z";
+const T=document.getElementById('term');
+let inputRow,inp,busy=false,hist=[],hi=0;
+const FLAGS={whoami:"FLAG{h0la_s0y_c4rl0s}",experiencia:"FLAG{qa_c0n_0j0_d3_at4c4nt3}",formacion:"FLAG{n3v3r_st0p_l3arn1ng}",skills:"FLAG{burp_nm4p_and_ch1ll}",certs:"FLAG{ejpt_pnpt_0scp}",labs:"FLAG{try_h4rd3r}",contacto:"FLAG{r34dy_t0_j01n}"};
+const got=new Set();
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const PS='<span class="prompt">recruiter@<span class="h">0xCarlos</span>:~$</span> ';
+
+function line(html,cls){const d=document.createElement('div');d.className='l'+(cls?' '+cls:'');d.innerHTML=html;T.insertBefore(d,inputRow||null);T.scrollTop=T.scrollHeight;return d}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function out(lines,delay=18){busy=true;for(const l of lines){line(l);await sleep(delay)}busy=false;T.scrollTop=T.scrollHeight}
+async function typeLine(text,cls,speed=12){const d=line('',cls);for(let i=0;i<=text.length;i++){d.textContent=text.slice(0,i);T.scrollTop=T.scrollHeight;await sleep(speed)}}
+
+function capture(k){
+ if(got.has(k))return[`<span class="dim">(flag ya capturada)</span>`];
+ got.add(k);updProg();
+ const r=[``,`<span class="flag">🚩 ${FLAGS[k]}</span>  <span class="dim">[${got.size}/7]</span>`];
+ if(got.size===7)r.push(`<span class="warn b">⚡ Todas las flags capturadas. Ya puedes escalar privilegios: </span><span class="acc">sudo contratar</span>`);
+ return r;
+}
+function updProg(){document.getElementById('fc').textContent=got.size+'/7';document.getElementById('ff').style.width=(got.size/7*100)+'%';renderChips()}
+
+const files={'experiencia.txt':'experiencia','formacion.txt':'formacion','skills.txt':'skills','certs.txt':'certs','labs.txt':'labs','contacto.txt':'contacto'};
+
+const C={
+ help:()=>[
+  `<span class="b">Comandos disponibles</span> <span class="dim">(captura las 7 flags 🚩 para conseguir root)</span>`,
+  ``,
+  ` <span class="acc">whoami</span>            quién es Carlos`,
+  ` <span class="acc">ls</span> / <span class="acc">cat &lt;archivo&gt;</span>  explora el sistema`,
+  ` <span class="acc">experiencia</span>       dónde ha trabajado`,
+  ` <span class="acc">formacion</span>         estudios y cursos`,
+  ` <span class="acc">nmap carlos</span>       escanea sus skills`,
+  ` <span class="acc">certs</span>             certificaciones y roadmap`,
+  ` <span class="acc">labs</span>              práctica ofensiva`,
+  ` <span class="acc">contacto</span>          cómo hablar con él`,
+  ` <span class="acc">sudo contratar</span>    escalada final 😏`,
+  ``,
+  ` <span class="dim">otros: neofetch, hint, history, clear, cv (modo rápido)… y algún easter egg</span>`],
+ ls:()=>[`<span class="blue">experiencia.txt  formacion.txt  skills.txt  certs.txt  labs.txt  contacto.txt</span>  <span class="dim">.secreto</span>`],
+ 'ls -la':()=>C.ls(),
+ whoami:()=>[
+  `<img class="ava" src="${AVA}" alt="">`+
+  `<span class="acc b">Carlos López-Bleda</span>  <span class="dim">aka</span> <span class="acc">0xCarlos</span>`,
+  `24 años · Albacete, España`,
+  `Pentester Junior en formación · Hacking web · Red &amp; Blue Team`,
+  ``,
+  `Vengo de sistemas, redes y desarrollo web. Como QA en Genasys me pasaba el día`,
+  `probando APIs y endpoints buscando dónde se rompían… y descubrí que eso era`,
+  `lo que más me gustaba: pensar como un atacante.`,
+  ``,
+  `Ahora estoy con el Máster de Ciberseguridad de Evolve, los cursos de Hack4u`,
+  `y dando el salto a VDPs y bug bounty. Siempre al pie del cañón 💪`,
+  `<div style="clear:both"></div>`,...capture('whoami')],
+ experiencia:()=>[
+  `<span class="b">[+] Historial laboral</span>`,``,
+  `<span class="acc">▸ Tester QA Backend/Frontend</span> — Genasys Inc.  <span class="dim">abr–sep 2025 · Albacete</span>`,
+  `   · Testing de APIs y servidores (endpoints, templates) en proyectos de protección civil`,
+  `   · Detección de posibles vulnerabilidades y fallos de lógica`,
+  `   · Automatización con Selenium y Cypress · MySQL · Elasticsearch`,``,
+  `<span class="acc">▸ Técnico de Redes / Instalador</span> — Tech Zone  <span class="dim">2022 · Malta 🇲🇹</span>`,
+  `   · CCTV, alarmas y control de accesos · servidores y RAID`,``,
+  `<span class="acc">▸ Peritaje informático</span>  <span class="dim">casos puntuales</span>`,
+  `   · Apoyo en informes periciales para procedimientos judiciales`,``,
+  `<span class="acc">▸ Propadel · Hostelería</span>  <span class="dim">2022 – hoy</span>`,
+  `   · Coordinador de centro deportivo y camarero, compaginado con la formación.`,
+  `   · Traducción: sé lo que es currar 30 días seguidos sin quejarme.`,...capture('experiencia')],
+ formacion:()=>[
+  `<span class="b">[+] Formación</span>`,``,
+  `<span class="acc">▸ Máster en Ciberseguridad</span> — Evolve Academy  <span class="warn">[en curso]</span>  <span class="dim">Red + Blue Team · voucher eJPT</span>`,
+  `<span class="acc">▸ CFGS Desarrollo de Aplicaciones Web</span> — Medac Albacete  <span class="dim">2023–2025</span>`,
+  `<span class="acc">▸ CFGM Sistemas Microinformáticos y Redes</span> — IES Leonardo Da Vinci  <span class="dim">2020–2022</span>`,``,
+  `<span class="b">Hack4u</span>`,
+  `  ✔ Introducción al Hacking   ✔ Python Ofensivo   ✔ Personalización de Linux`,
+  `  ◷ Hacking Web              ◷ Bash Scripting`,...capture('formacion')],
+ skills:async()=>{
+  await out([`Starting Nmap 7.95 ( https://nmap.org )`,`Nmap scan report for carlos (10.10.0.24)`,`Host is up (0.0001s latency).`,``,`<span class="b">PORT      STATE  SERVICE         VERSION</span>`],60);
+  await out([
+   `80/tcp    <span class="acc">open</span>   http            Hacking web · OWASP Top 10 · Burp Suite`,
+   `443/tcp   <span class="acc">open</span>   api-testing     Endpoints, auth, lógica de negocio (ex-QA)`,
+   `22/tcp    <span class="acc">open</span>   ssh             Linux como SO principal (Arch btw)`,
+   `445/tcp   <span class="acc">open</span>   microsoft-ds    Active Directory (enumeración y ataque)`,
+   `3306/tcp  <span class="acc">open</span>   mysql           SQL · MySQL · Elasticsearch`,
+   `8080/tcp  <span class="acc">open</span>   scripting       Python · Bash · JavaScript · Java`,
+   `9001/tcp  <span class="acc">open</span>   recon           Nmap · Metasploit · Kali · Parrot`,
+   `1337/tcp  <span class="acc">open</span>   attitude        Ganas infinitas · aprendizaje continuo`,
+   `31337/tcp <span class="warn">filtered</span> experiencia     Aún por desbloquear… ¿le das acceso? 👀`],140);
+  return [``,`<span class="dim">Nmap done: 1 host up, 0 excuses.</span>`,...capture('skills')]},
+ certs:()=>[
+  `<span class="b">[+] Roadmap de certificaciones</span>`,``,
+  `  <span class="warn">[◷]</span> eJPT  ──▶  <span class="dim">[ ]</span> PNPT  ──▶  <span class="dim">[ ]</span> OSCP`,``,
+  `  <span class="acc">[✔]</span> AWS Cloud Quest: Cloud Practitioner`,
+  `  <span class="acc">[✔]</span> AWS Cloud Quest: Solutions Architect`,...capture('certs')],
+ labs:()=>[
+  `<span class="b">[+] Laboratorio casero</span> <span class="dim">(VMware, montado en mi propio equipo)</span>`,``,
+  `  <span class="acc">pwned</span>  Cereal`,
+  `  <span class="acc">pwned</span>  MyExpense            <span class="dim">— aplicación web vulnerable</span>`,
+  `  <span class="acc">pwned</span>  Padding Oracle Attack`,``,
+  `  <span class="warn">ahora</span>  VDPs y bug bounty en Secur0 → buscando mi primera vuln real`,
+  `  <span class="dim">extra</span>  Flipper Zero con firmware Unleashed para auditoría física`,...capture('labs')],
+ contacto:()=>[
+  `<span class="b">[+] Canales abiertos</span>`,``,
+  `  ✉  Carloslopezbm@gmail.com`,
+  `  in <a href="https://linkedin.com/in/carlos-lopez-bleda-mancebo-b28b70309" target="_blank" rel="noopener">linkedin.com/in/carlos-lopez-bleda-mancebo-b28b70309</a>`,
+  `  ⌥  <a href="https://github.com/carlosLopez-Bleda" target="_blank" rel="noopener">github.com/carlosLopez-Bleda</a>`,
+  `  🛡  Secur0: 0xCarlos`,
+  `  📍 Albacete · remoto / híbrido / presencial · incorporación inmediata`,...capture('contacto')],
+ neofetch:()=>[
+  `<span class="blue">       /\\        </span>  <span class="acc b">carlos</span>@<span class="acc b">0xCarlos</span>`,
+  `<span class="blue">      /  \\       </span>  ----------------`,
+  `<span class="blue">     /\\   \\      </span>  <span class="acc">OS:</span> Arch Linux (sí, lo uso btw)`,
+  `<span class="blue">    /      \\     </span>  <span class="acc">Host:</span> Albacete, ES`,
+  `<span class="blue">   /   ,,   \\    </span>  <span class="acc">Uptime:</span> 24 años`,
+  `<span class="blue">  /   |  |  -\\   </span>  <span class="acc">Shell:</span> bash (curso en marcha)`,
+  `<span class="blue"> /_-''    ''-_\\  </span>  <span class="acc">Packages:</span> SMR, DAW, Máster Evolve, Hack4u`,
+  `                    <span class="acc">Tools:</span> Burp, Nmap, Metasploit, Flipper Zero`,
+  `                    <span class="acc">Memory:</span> 100% motivación libre`],
+ hint:()=>{const left=Object.keys(FLAGS).filter(k=>!got.has(k));return left.length?[`<span class="warn">💡 Te faltan:</span> ${left.map(k=>k==='skills'?'nmap carlos':k).join(', ')}`]:[`<span class="warn">💡 Ya lo tienes todo. Prueba</span> <span class="acc">sudo contratar</span>`]},
+ history:()=>hist.length?hist.map((h,i)=>`  ${i+1}  ${esc(h)}`):[`<span class="dim">(vacío)</span>`],
+ 'cat .secreto':()=>[`<span class="warn">// Si has llegado hasta aquí, ya sabes que me gusta cuidar los detalles.</span>`,`<span class="warn">// Este CV lo he montado como un CTF porque así es como aprendo: rompiendo cosas.</span>`],
+ flipper:()=>[`🐬 <span class="acc">Flipper Zero</span> detectado · firmware Unleashed`,`<span class="dim">Leyendo sub-GHz… nah, que esto es una entrevista. Pero pregúntame por él 😉</span>`],
+ secur0:()=>[`<span class="acc">Secur0</span> → ciberseguridad impulsada por hackers.`,`Perfil: <span class="acc">0xCarlos</span> · estado: <span class="warn">buscando su primera vuln real</span>`],
+ 'rm -rf /':()=>[`<span class="err">rm: buen intento 😂 Este sistema tiene hardening.</span>`,`<span class="dim">(algo de Blue Team también he aprendido)</span>`],
+ sudo:()=>[`[sudo] password for recruiter: ********`,`<span class="err">Sorry, try again.</span> <span class="dim">Pista: prueba</span> <span class="acc">sudo contratar</span>`],
+ exit:()=>[`<span class="dim">logout… ¿seguro? Aún te quedan flags. Vuelve cuando quieras 👋</span>`],
+ ping:()=>[`PING carlos (10.10.0.24): 56 data bytes`,`64 bytes from carlos: icmp_seq=0 ttl=64 time=0.1 ms  <span class="dim">← responde rápido a los correos también</span>`],
+ date:()=>[new Date().toString()],
+ pwd:()=>[`/home/carlos/camino-a-pentester`],
+ cv:()=>{openCV();return[`<span class="dim">Abriendo modo rápido…</span>`]},
+};
+C['nmap carlos']=C.skills;C.nmap=C.skills;C['nmap']=C.skills;C['formación']=C.formacion;C['ping carlos']=C.ping;C['cat']=()=>[`uso: cat &lt;archivo&gt;  (prueba <span class="acc">ls</span>)`];
+
+async function hire(){
+ if(got.size<7){return[`<span class="err">[sudo] permiso denegado:</span> te faltan <span class="warn">${7-got.size}</span> flags. Escribe <span class="acc">hint</span>.`]}
+ await out([`[sudo] password for recruiter: ************`,`<span class="dim">Escalando privilegios…</span>`],300);
+ for(const p of [20,45,70,90,100]){line(`<span class="acc">[${'#'.repeat(p/5).padEnd(20,'.')}] ${p}%</span>`);await sleep(250)}
+ return [``,
+ `<span class="acc b">root@0xCarlos:~# id</span>`,
+ `uid=0(root) gid=0(root) groups=0(root),1337(equipo)`,``,
+ `<span class="acc b">╔══════════════════════════════════════════════╗</span>`,
+ `<span class="acc b">║   🏆  MÁQUINA "CARLOS" COMPROMETIDA (pwned)   ║</span>`,
+ `<span class="acc b">╚══════════════════════════════════════════════╝</span>`,``,
+ `No tengo todos los requisitos todavía, pero sí las ganas, la constancia`,
+ `y la actitud para ser un activo valioso en muy poco tiempo.`,
+ `Siempre al pie del cañón, sean 5, 10 o 20 horas.`,``,
+ `👉 Siguiente paso: <span class="acc">Carloslopezbm@gmail.com</span>`,
+ `<span class="dim">Gracias por jugar. ¿Hablamos?</span>`];
+}
+
+async function run(raw){
+ const cmd=raw.trim();
+ line(PS+esc(raw));
+ if(!cmd)return;
+ hist.push(cmd);hi=hist.length;
+ const low=cmd.toLowerCase().replace(/\s+/g,' ');
+ if(low==='clear'){[...T.querySelectorAll('.l')].forEach(n=>n.remove());return}
+ let r;
+ if(low==='sudo contratar'||low==='sudo hire')r=await hire();
+ else if(low.startsWith('cat ')){const f=low.slice(4).trim();r=C['cat '+f]?C['cat '+f]():files[f]?await C[files[f]]():[`<span class="err">cat: ${esc(f)}: No such file or directory</span>`]}
+ else if(C[low])r=await C[low]();
+ else r=[`<span class="err">bash: ${esc(cmd.split(' ')[0])}: command not found</span> <span class="dim">— escribe</span> <span class="acc">help</span>`];
+ if(r)await out(r);
+}
+
+const CHIPS=[['whoami','whoami'],['experiencia','experiencia'],['formacion','formacion'],['nmap carlos','skills'],['certs','certs'],['labs','labs'],['contacto','contacto'],['sudo contratar',null],['help',null]];
+function renderChips(){const c=document.getElementById('chips');c.innerHTML='';CHIPS.forEach(([t,k])=>{const b=document.createElement('button');b.textContent=t;if(k&&got.has(k))b.className='done';b.onclick=()=>exec(t);c.appendChild(b)})}
+async function exec(t){if(busy)return;inp.value='';await run(t);inp.focus()}
+
+function mkInput(){inputRow=document.createElement('div');inputRow.className='l inrow';inputRow.innerHTML=PS.trim()+'<input id="in" autocomplete="off" spellcheck="false" aria-label="comando">';T.appendChild(inputRow);inp=inputRow.querySelector('input');
+ inp.addEventListener('keydown',async e=>{
+  if(e.key==='Enter'){if(busy)return;const v=inp.value;inp.value='';await run(v);inp.focus()}
+  else if(e.key==='ArrowUp'){if(hi>0){hi--;inp.value=hist[hi]}e.preventDefault()}
+  else if(e.key==='ArrowDown'){if(hi<hist.length-1){hi++;inp.value=hist[hi]}else{hi=hist.length;inp.value=''}e.preventDefault()}
+  else if(e.key==='Tab'){e.preventDefault();const v=inp.value.toLowerCase();const all=[...Object.keys(C),'sudo contratar',...Object.keys(files).map(f=>'cat '+f)];const m=all.filter(k=>k.startsWith(v));if(m.length===1)inp.value=m[0];else if(m.length>1)line('<span class="dim">'+m.join('   ')+'</span>')}
+  else if(e.key==='l'&&e.ctrlKey){e.preventDefault();[...T.querySelectorAll('.l')].forEach(n=>{if(n!==inputRow)n.remove()})}
+ });
+ T.addEventListener('click',()=>{if(!window.getSelection().toString())inp.focus()});
+}
+
+function openCV(){document.getElementById('cv').classList.add('on')}
+document.getElementById('quick').onclick=openCV;
+document.getElementById('cvx').onclick=()=>document.getElementById('cv').classList.remove('on');
+document.getElementById('cv').onclick=e=>{if(e.target.id==='cv')e.target.classList.remove('on')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('cv').classList.remove('on')});
+
+(async()=>{
+ renderChips();
+ busy=true;
+ const boot=[['[  OK  ] Iniciando 0xCarlos-OS (Arch based)…','dim'],['[  OK  ] Montando /home/carlos/experiencia','dim'],['[  OK  ] Cargando módulos: hacking_web, api_testing, linux','dim'],['[  OK  ] Levantando servicio: ganas.service','dim'],['[ WARN ] Vulnerabilidades reales encontradas: 0 (trabajando en ello)','warn']];
+ for(const [t,c] of boot){await typeLine(t,c,6);await sleep(90)}
+ line('');
+ await out([
+ `<span class="acc b">  ___       ____           _            </span>`,
+ `<span class="acc b"> / _ \\__  _/ ___|__ _ _ __| | ___  ___  </span>`,
+ `<span class="acc b">| | | \\ \\/ / |   / _\` | '__| |/ _ \\/ __| </span>`,
+ `<span class="acc b">| |_| |>  <| |__| (_| | |  | | (_) \\__ \\ </span>`,
+ `<span class="acc b"> \\___//_/\\_\\\\____\\__,_|_|  |_|\\___/|___/ </span>`,``],8);
+ busy=true;
+ await typeLine('Bienvenido/a. Esto no es un CV normal: es una máquina que tienes que hackear.',null,14);
+ await typeLine('Captura las 7 flags 🚩 y consigue root. Escribe "help" o usa los botones de abajo.',null,14);
+ line('<span class="dim">¿Sin tiempo? Pulsa "Modo rápido ⚡ CV" arriba a la derecha.</span>');
+ line('');
+ busy=false;mkInput();inp.focus();
+})();
+</script>
+</body>
+</html>
