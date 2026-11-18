@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red Team vs Blue Team — ¿Qué nivel tienes? | 0xCarlos</title>
+<meta name="description" content="Test de ciberseguridad para juniors: elige Red Team o Blue Team, responde 10 preguntas y la terminal te dirá tu nivel.">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0f0d;--fg:#d6f5e3;--dim:#7d9989;--g:#39ff9f;--r:#ff4d5e;--b:#4db8ff;--y:#ffcc4d;--p:#111814;--line:#1f2d25}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:15px;line-height:1.5}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px)}
+.wrap{max-width:760px;margin:0 auto;padding:18px 14px 40px}
+.bar{display:flex;align-items:center;gap:8px;background:var(--p);border:1px solid var(--line);border-radius:10px 10px 0 0;padding:8px 12px;font-size:12px;color:var(--dim)}
+.bar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.bar .t{flex:1;text-align:center}
+.box{background:rgba(10,16,13,.92);border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:22px 20px;min-height:420px}
+h1{font-size:22px;margin:0 0 6px;color:var(--g)}
+.dim{color:var(--dim)}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.team{border:2px solid;border-radius:10px;padding:18px;cursor:pointer;background:transparent;color:var(--fg);font:inherit;text-align:left;transition:transform .15s,background .15s}
+.team:hover{transform:translateY(-3px)}
+.team.red{border-color:var(--r)} .team.red:hover{background:rgba(255,77,94,.08)}
+.team.blue{border-color:var(--b)} .team.blue:hover{background:rgba(77,184,255,.08)}
+.team b{font-size:19px;display:block;margin-bottom:6px}
+.red b,.redc{color:var(--r)} .blue b,.bluec{color:var(--b)}
+.prog{height:6px;background:#1b2620;border-radius:4px;overflow:hidden;margin:4px 0 16px}
+.prog div{height:100%;width:0;transition:width .4s}
+.qn{font-size:12px;color:var(--dim)}
+.q{font-size:17px;font-weight:700;margin:6px 0 16px}
+.opt{display:block;width:100%;text-align:left;background:#121c17;border:1px solid #24362c;color:var(--fg);font:inherit;padding:11px 13px;border-radius:7px;margin-bottom:9px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--g)}
+.opt.ok{border-color:var(--g);background:rgba(57,255,159,.12)}
+.opt.ko{border-color:var(--r);background:rgba(255,77,94,.12)}
+.opt:disabled{cursor:default}
+.exp{border-left:3px solid var(--y);padding:8px 12px;margin:12px 0;background:rgba(255,204,77,.06);font-size:14px}
+.btn{background:var(--g);color:#000;border:none;font:inherit;font-weight:700;padding:10px 16px;border-radius:7px;cursor:pointer;margin:6px 8px 0 0}
+.btn.ghost{background:transparent;color:var(--g);border:1px solid var(--g)}
+.log div{min-height:1.5em}
+.res{text-align:center;margin-top:10px}
+.res .lvl{font-size:26px;font-weight:700;margin:6px 0}
+.res .score{font-size:15px;color:var(--dim)}
+.res p{text-align:left}
+.foot{margin-top:16px;font-size:12px;color:var(--dim);text-align:center}
+a{color:var(--g)}
+.toast{color:var(--g);font-size:13px;min-height:1.4em;margin-top:6px}
+@media(max-width:560px){.teams{grid-template-columns:1fr}.box{padding:18px 14px}.q{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="bar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span class="t">guest@internet: ./sorting_terminal.sh</span></div>
+ <div class="box" id="app"></div>
+ <div class="foot">Hecho por <a href="https://carloslbm.github.io">0xCarlos</a> · ¿quieres hackear mi CV? → <a href="https://carloslbm.github.io">carloslbm.github.io</a></div>
+</div>
+<script>
+const Q={
+red:[
+ ["Lanzas `nmap -sS` contra un objetivo. ¿Qué tipo de escaneo estás haciendo?",["SYN scan (half-open): envía SYN y no completa el handshake","Escaneo UDP de todos los puertos","Ping sweep para descubrir hosts","Escaneo de versiones de servicios"],0,"-sS es el SYN scan: si recibe SYN/ACK el puerto está abierto y responde con RST sin completar la conexión. Es el escaneo por defecto con privilegios de root."],
+ ["El puerto 445/TCP abierto en una máquina Windows suele ser…",["RDP","SMB","WinRM","LDAP"],1,"445 es SMB. RDP es 3389, WinRM 5985/5986 y LDAP 389 (636 con SSL)."],
+ ["En un login metes `' OR '1'='1' -- -` en el usuario y entras sin contraseña. ¿Qué vulnerabilidad es?",["XSS reflejado","Inyección SQL","CSRF","Path traversal"],1,"La comilla rompe la consulta y la condición OR siempre es verdadera: inyección SQL clásica para bypass de autenticación."],
+ ["¿Qué diferencia una reverse shell de una bind shell?",["En la reverse shell la víctima se conecta al atacante","En la reverse shell el atacante abre un puerto en la víctima","Son lo mismo con otro nombre","La reverse shell solo funciona en Windows"],0,"Reverse: la víctima inicia la conexión hacia tu listener (nc -lvnp). Suele saltarse firewalls que bloquean conexiones entrantes. En la bind shell la víctima escucha y tú te conectas."],
+ ["Cambias `/factura?id=1041` por `/factura?id=1042` y ves la factura de otro cliente. ¿Qué has encontrado?",["IDOR / control de acceso roto","SSRF","Open redirect","Clickjacking"],0,"IDOR (Insecure Direct Object Reference): el servidor no comprueba que el recurso sea tuyo. Es de lo más reportado en bug bounty."],
+ ["Un payload `<script>` que guardas en un comentario se ejecuta en el navegador de cada usuario que lo ve. Es un…",["XSS reflejado","XSS almacenado (stored)","XSS basado en DOM","SQLi ciega"],1,"Stored XSS: el payload se guarda en el servidor y se sirve a otros usuarios. Más peligroso que el reflejado porque no necesita que la víctima pinche un enlace."],
+ ["Ya tienes shell en un Linux. ¿Qué buscas con `find / -perm -4000 2>/dev/null`?",["Archivos con permisos 777","Binarios SUID que se ejecutan con permisos del propietario","Claves SSH privadas","Tareas cron"],1,"-perm -4000 lista binarios con bit SUID. Si alguno es explotable (mira GTFOBins) puedes escalar a root."],
+ ["¿Para qué usas `gobuster dir -u https://web -w lista.txt`?",["Fuerza bruta de contraseñas","Descubrir directorios y archivos ocultos","Enumerar subdominios por DNS","Escanear puertos"],1,"El modo dir hace fuzzing de rutas con un diccionario para encontrar paneles, backups o endpoints que no están enlazados."],
+ ["¿Qué herramienta usarías para interceptar y modificar peticiones HTTP entre tu navegador y la web?",["Wireshark","Burp Suite","Hydra","John the Ripper"],1,"Burp Suite actúa como proxy: interceptas, modificas y repites peticiones (Repeater, Intruder…). Wireshark captura tráfico pero no lo modifica en vivo."],
+ ["En Active Directory, pides tickets TGS de cuentas de servicio con SPN para crackearlos offline. Eso es…",["Pass-the-Hash","Kerberoasting","Golden Ticket","DCSync"],1,"Kerberoasting: cualquier usuario del dominio puede pedir TGS de cuentas con SPN. El ticket va cifrado con el hash de la cuenta de servicio, así que se crackea offline con hashcat."]
+],
+blue:[
+ ["¿Cuál es la función principal de un SIEM?",["Bloquear malware en los endpoints","Centralizar y correlacionar logs para detectar amenazas","Cifrar el tráfico de la red","Hacer copias de seguridad"],1,"Un SIEM (Splunk, Elastic, Wazuh, Sentinel…) recoge logs de muchas fuentes, los normaliza y aplica reglas de correlación para generar alertas."],
+ ["En los logs de seguridad de Windows, el Event ID 4625 indica…",["Inicio de sesión correcto","Inicio de sesión fallido","Creación de un usuario","Borrado del log de seguridad"],1,"4625 = logon fallido. 4624 es logon correcto, 4720 creación de cuenta y 1102 borrado del log de seguridad (¡muy sospechoso!)."],
+ ["Ves 300 eventos 4625 desde la misma IP en 2 minutos y justo después un 4624 de esa IP. ¿Qué pinta tiene?",["Un usuario que ha olvidado su contraseña","Fuerza bruta que ha tenido éxito","Un fallo del controlador de dominio","Actualización de Windows"],1,"Muchos fallos seguidos de un éxito desde el mismo origen es el patrón típico de fuerza bruta o password spraying exitoso. Toca escalar y contener."],
+ ["¿Cuál de estos es un IOC (Indicador de Compromiso)?",["La política de contraseñas de la empresa","El hash SHA-256 de un ejecutable malicioso","El número de empleados","La versión del firewall"],1,"Hashes, IPs, dominios o URLs maliciosas son IOCs: evidencias concretas de que algo malo ha pasado y que puedes buscar en tus sistemas."],
+ ["Para analizar si un correo de phishing suplanta un dominio, ¿qué revisas en las cabeceras?",["SPF, DKIM y DMARC","El tamaño del adjunto","El idioma del mensaje","La firma del remitente"],0,"SPF valida qué servidores pueden enviar por el dominio, DKIM firma el mensaje y DMARC dice qué hacer si fallan. Si no cuadran, mala señal."],
+ ["Según NIST, después de detectar y analizar un incidente, ¿qué viene?",["Lecciones aprendidas","Contención, erradicación y recuperación","Preparación","Cerrar el ticket"],1,"Ciclo NIST: Preparación → Detección y análisis → Contención, erradicación y recuperación → Actividad post-incidente (lecciones aprendidas)."],
+ ["En Sysmon, ¿qué registra el Event ID 1?",["Conexiones de red","Creación de procesos (con línea de comandos)","Cambios en el registro","Consultas DNS"],1,"Sysmon ID 1 = creación de proceso, incluyendo command line, hash y proceso padre. Oro puro para detectar cosas como powershell -enc. ID 3 es red y ID 22 DNS."],
+ ["¿Qué aporta un EDR frente a un antivirus clásico?",["Solo detecta por firmas, pero más rápido","Monitoriza comportamiento en el endpoint y permite investigar y responder (aislar, matar procesos…)","Sustituye al firewall","Solo funciona en servidores"],1,"El EDR detecta por comportamiento, guarda telemetría para investigar y permite responder en remoto: aislar el equipo, matar procesos, etc."],
+ ["¿Qué es MITRE ATT&CK?",["Un antivirus open source","Una base de conocimiento de tácticas y técnicas de atacantes reales","Una norma ISO de seguridad","Un tipo de ataque DDoS"],1,"ATT&CK cataloga tácticas (el porqué) y técnicas (el cómo) de adversarios reales. Se usa para mapear detecciones y ver qué huecos tienes."],
+ ["¿Qué medida reduce más el impacto de un ransomware que ya ha cifrado los equipos?",["Cambiar el fondo de pantalla","Tener backups offline/inmutables y probados (regla 3-2-1)","Pagar el rescate","Reiniciar los equipos"],1,"Con backups aislados y probados recuperas sin pagar. Regla 3-2-1: 3 copias, 2 soportes distintos, 1 fuera de la red."]
+]};
+const LV={
+red:[[0,3,"🐣 Script Kiddie con ganas","Tienes la curiosidad, que es lo más importante. Toca empezar por redes, Linux y máquinas fáciles: cada máquina que rompas te va a enseñar más que cualquier vídeo."],
+     [4,6,"🔍 Recon Rookie","Ya sabes por dónde van los tiros. Te falta rodaje: mete horas en laboratorios, practica hacking web y empieza a escribir tus propios writeups."],
+     [7,8,"🗡️ Pentester Junior","Base sólida. Estás para ir a por la eJPT y empezar en bug bounty o VDPs. Lo siguiente: Active Directory y escalada de privilegios."],
+     [9,10,"💀 Operador Red Team en potencia","Tienes nivel de entrevista. Si no has empezado a reportar vulnerabilidades reales, ya vas tarde 😏"]],
+blue:[[0,3,"🐣 Becario del SIEM","Todos empezamos aquí. Ponte con los logs de Windows, aprende qué es normal en una red y monta un Wazuh o un Elastic en casa para jugar."],
+      [4,6,"📟 Analista L1 en prácticas","Entiendes lo básico. Te falta ver alertas reales: haz retos de Blue Team (análisis de logs, phishing, PCAPs) y estudia MITRE ATT&CK."],
+      [7,8,"🛡️ Analista SOC L1","Sabes triar una alerta y no te asusta un log. Perfil de SOC junior: a por certificaciones defensivas y a practicar respuesta a incidentes."],
+      [9,10,"🧠 Threat Hunter en potencia","Piensas más allá de la alerta. Tienes nivel para SOC y para empezar a crear tus propias detecciones."]]};
+const app=document.getElementById('app');
+let team,qs,i,score;
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/`([^`]+)`/g,'<code class="redc" style="color:var(--y)">$1</code>');
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function home(){
+ app.innerHTML=`<h1>Red Team vs Blue Team</h1>
+ <div class="dim">¿Qué nivel tienes en ciberseguridad? Elige bando, responde 10 preguntas de nivel junior y la <b>Sorting Terminal</b> decidirá dónde encajas.</div>
+ <div class="teams">
+  <button class="team red" data-t="red"><b>🔴 Red Team</b>Pentesting, hacking web, explotación y Active Directory.</button>
+  <button class="team blue" data-t="blue"><b>🔵 Blue Team</b>SOC, logs, detección y respuesta a incidentes.</button>
+ </div>
+ <p class="dim" style="margin-top:20px;font-size:13px">Sin registro. No se guarda nada. Solo tú y la terminal.</p>`;
+ app.querySelectorAll('.team').forEach(b=>b.onclick=()=>start(b.dataset.t));
+}
+function start(t){team=t;qs=Q[t].map(q=>{const o=q[1].map((x,k)=>({x,ok:k===q[2]}));return{q:q[0],o:shuffle(o),e:q[3]}});i=0;score=0;show()}
+function show(){
+ const c=team==='red'?'var(--r)':'var(--b)',q=qs[i];
+ app.innerHTML=`<div class="qn">${team==='red'?'🔴 RED TEAM':'🔵 BLUE TEAM'} · pregunta ${i+1}/10 · aciertos ${score}</div>
+ <div class="prog"><div style="background:${c};width:${i*10}%"></div></div>
+ <div class="q">${esc(q.q)}</div><div id="opts"></div><div id="after"></div>`;
+ const box=document.getElementById('opts');
+ q.o.forEach(o=>{const b=document.createElement('button');b.className='opt';b.innerHTML=esc(o.x);b.onclick=()=>answer(o,b);box.appendChild(b)});
+}
+function answer(o,btn){
+ const bs=[...document.querySelectorAll('.opt')];bs.forEach(b=>b.disabled=true);
+ qs[i].o.forEach((x,k)=>{if(x.ok)bs[k].classList.add('ok')});
+ if(o.ok)score++;else btn.classList.add('ko');
+ document.getElementById('after').innerHTML=`<div class="exp"><b>${o.ok?'✅ ¡Correcto!':'❌ Casi…'}</b> ${esc(qs[i].e)}</div>
+ <button class="btn" id="nx">${i<9?'Siguiente →':'Ver mi nivel 🎩'}</button>`;
+ document.getElementById('nx').onclick=()=>{i++;i<10?show():sort()};
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function sort(){
+ app.innerHTML=`<div class="log" id="log"></div>`;const L=document.getElementById('log');
+ const lines=["$ ./sorting_terminal.sh --candidato guest","[*] Leyendo respuestas…","[*] Analizando tu forma de pensar…","[*] Mmm… interesante… veo curiosidad… y muchas horas de laboratorio por delante…","[*] Consultando la base de datos de hackers…","[+] Decisión tomada."];
+ for(const l of lines){const d=document.createElement('div');d.className=l.startsWith('[+]')?'':'dim';d.textContent=l;L.appendChild(d);await sleep(650)}
+ await sleep(400);
+ const lv=LV[team].find(x=>score>=x[0]&&score<=x[1]);const c=team==='red'?'var(--r)':'var(--b)';
+ const share=`He hecho el test ${team==='red'?'Red Team 🔴':'Blue Team 🔵'} de 0xCarlos: ${score}/10 → ${lv[2]}. ¿Te atreves? https://carloslbm.github.io/quiz/`;
+ app.innerHTML=`<div class="res">
+  <div class="dim">La Sorting Terminal dice que eres…</div>
+  <div class="lvl" style="color:${c}">${lv[2]}</div>
+  <div class="score">${team==='red'?'🔴 Red Team':'🔵 Blue Team'} · ${score}/10 aciertos</div>
+  <p>${lv[3]}</p>
+  <button class="btn" id="cp">📋 Copiar resultado para compartir</button>
+  <button class="btn ghost" id="other">Probar el ${team==='red'?'Blue':'Red'} Team</button>
+  <button class="btn ghost" id="again">Repetir</button>
+  <div class="toast" id="toast"></div>
+  <p class="dim" style="font-size:13px;margin-top:18px">Compártelo en LinkedIn y etiqueta a <b>0xCarlos</b> con tu resultado. Y si eres reclutador… <a href="https://carloslbm.github.io">hackea mi CV</a> 😏</p>
+ </div>`;
+ document.getElementById('cp').onclick=async()=>{const t=document.getElementById('toast');try{await navigator.clipboard.writeText(share);t.textContent='¡Copiado! Pégalo en un comentario 👇'}catch(e){t.textContent=share}};
+ document.getElementById('other').onclick=()=>start(team==='red'?'blue':'red');
+ document.getElementById('again').onclick=home;
+}
+home();
+</script>
+</body>
+</html>
